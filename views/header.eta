@@ -1,0 +1,72 @@
+<!-- 
+  Balance & Holdings
+  Buy/Sell
+  Quotes
+ -->
+
+<% let links = [{name: 'Home', url: '/'},{name: 'Balance & Holdings', url: '/holdings'}, {name: 'Buy/Sell', url: '/purchase'}] %>
+
+<header>
+  <!-- Fixed navbar -->
+  <nav class="navbar p-6 navbar-expand-md navbar-light fixed-top ">
+    <div class=" container-fluid">
+      <a class="navbar-brand" href="#">Fixed navbar</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
+        aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarCollapse">
+        <ul class="navbar-nav me-auto mb-2 mb-md-0">
+          <% for(var i=0; i < links.length; i++) { %>
+          <li class="nav-item">
+            <a class="nav-link" id="<%= links[i].url %>" href="<%= links[i].url %>"><%= links[i].name %></a>
+          </li>
+          <% } %>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Link</a>
+          </li>
+          <!-- <li class="nav-item">
+            <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
+          </li> -->
+        </ul>
+        <form class="d-flex">
+          <!-- <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+          <button class="btn btn-outline-success" type="submit">Search</button> -->
+          <ul class="navbar-nav me-auto mb-2 mb-md-0">
+            <li class="nav-item">
+              <a class="nav-link" href="/account">Account</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/logout">Logout</a>
+            </li>
+
+          </ul>
+        </form>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<style>
+  nav {
+    /* background-color: #ececec; */
+  }
+
+  .navbar-brand {
+    -webkit-border-radius: 1em;
+    -moz-border-radius: 1em;
+    border-radius: 1em;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    float: left;
+    line-height: 1;
+    margin: 0 5px;
+    padding: 0.25em;
+    text-decoration: none;
+  }
+</style>
+
+<script>
+  // highlight the current page link (the id of the current page is the url)
+  document.getElementById(document.location.pathname).classList.add('active');
+</script>
