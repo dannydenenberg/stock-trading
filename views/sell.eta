@@ -1,0 +1,49 @@
+<% layout('./center-content') %>
+
+<h2 class="pt-7">Sell Holdings</h2>
+
+<form action="">
+  <ol class="list-group ">
+    <% for (var i=0; i < it.person.holdings.length; i++) { %>
+    <% let holdings = it.person.holdings; %>
+    <% let ticker = it.person.holdings[i].ticker; %>
+    <% let quantity = it.person.holdings[i].quantity; %>
+    <% let currentPriceOfOneShare = it.person.holdings[i].currentPriceOfOneShare; %>
+    <li class="list-group-item d-flex justify-content-between align-items-start">
+      <input class="form-check-input me-1" type="checkbox" value="" aria-label="...">
+      <div class="ms-2 me-auto">
+        <div class="fw-bold"><%= ticker %></div>
+        <div><%= quantity %> share<%= quantity > 1 ? "s" : "" %> at
+          $<%= currentPriceOfOneShare %> = $<code><%= quantity*currentPriceOfOneShare %></code></div>
+        <% if (holdings[i].limit) { %>
+        <span class="text-muted">Limit order at $<%= holdings[i].limit %>.</span>
+        <% } %>
+        <% if (holdings[i].stop) { %>
+        <span class="text-muted">Stop order at $<%= holdings[i].stop %>.</span>
+        <% } %>
+      </div>
+      <span class="badge bg-primary rounded-pill"><%= quantity %></span>
+    </li>
+    <% } %>
+    <!-- <li class="list-group-item d-flex justify-content-between align-items-start">
+      <input class="form-check-input me-1" type="checkbox" value="" aria-label="...">
+      <div class="ms-2 me-auto">
+        <div class="fw-bold">VTI</div>
+        <div>14 shares at $2938.32 = $<code>41136.48</code></div>
+        <span class="text-muted">Stop Order at $15823.</span>
+      </div>
+      <span class="badge bg-primary rounded-pill">14</span>
+    </li>
+    <li class="list-group-item d-flex justify-content-between align-items-start">
+      <input class="form-check-input me-1" type="checkbox" value="" aria-label="...">
+      <div class="ms-2 me-auto">
+        <div class="fw-bold">AAPL</div>
+        <div>29 shares at $234.43 = $<code>289383.22</code></div>
+        <span class="text-muted">Limit Order at $250.40</span>
+      </div>
+      <span class="badge bg-primary rounded-pill">29</span>
+    </li> -->
+  </ol>
+
+  <button class="w-20 mt-6 btn btn-primary btn-lg" type="submit">Sell</button>
+</form>

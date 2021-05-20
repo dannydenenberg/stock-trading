@@ -1,0 +1,28 @@
+<% layout('./center-content') %>
+
+<h2 class="pt-7">Add/Subtract Money</h2>
+<p>Current amount available: $<code style="font-size: x-large"><%= it.person.money %></code></p>
+
+<form action="money" method="post" validate>
+  <div class="form-check">
+    <input value="subtract" class="form-check-input" type="radio" name="addOrSubtract" id="flexRadioDefault1">
+    <label class="form-check-label" for="flexRadioDefault1">
+      Subtract money
+    </label>
+  </div>
+  <div class="form-check">
+    <input value="add" class="form-check-input" type="radio" name="addOrSubtract" id="flexRadioDefault2" checked>
+    <label class="form-check-label" for="flexRadioDefault2">
+      Add money
+    </label>
+  </div>
+
+  <div class="input-group mb-3 w-20">
+    <span class="input-group-text">Amount $</span>
+    <input name="amount" type="number" step="0.01" class="form-control" aria-label="Amount (to the nearest dollar)"
+      required>
+    <span class="input-group-text">.00</span>
+  </div>
+  <button type="submit" class="btn btn-primary">Submit</button>
+
+</form>

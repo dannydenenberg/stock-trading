@@ -1,0 +1,59 @@
+<% layout('./center-content') %>
+
+<% let totalStockPrices = 0; %>
+<% const operationsForSum = it.person.holdings.length > 0 ? it.person.holdings.map(stock => {totalStockPrices +=stock.quantity*stock.currentPriceOfOneShare; return 0}) : 0; %>
+<% const totalAssets = totalStockPrices + it.person.money; %>
+
+<div id="alert" class="alert alert-primary" style="display:none;" role="alert">
+</div>
+
+<script>
+  function getQueryParameterByName(name, url = window.location.href) {
+    name = name.replace(/[\[\]]/g, '\\$&');
+    var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+      results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, ' '));
+  }
+  if (getQueryParameterByName('alert')) {
+    let contents = getQueryParameterByName('alert');
+    let alertEl = document.getElementById('alert');
+    alertEl.innerHTML = contents;
+    alertEl.style.display = 'block';
+  }
+</script>
+
+<h1 class="mt-5">Total Assets: $<code><%= totalAssets %></code></h1>
+<span class="text-muted">As of <%= new Date() %></span>
+
+<h2 class="mt-5 border">Money Market Fund</h2>
+<a href="/money">Add/Subtract Money</a>
+<p class="lead">Money that's readily available to trade: $<code><%= it.person.money %></code></p>
+
+<h2 class="mt-5 border">Holdings</h2>
+<a href="/buy">Buy</a> / <a href="/sell">Sell</a>
+<p class="lead">Current total assets in stock: $<code><%= totalStockPrices %></code></p>
+
+<ol class="list-group ">
+  <% for (var i=0; i < it.person.holdings.length; i++) { %>
+  <% let holdings = it.person.holdings; %>
+  <% let ticker = it.person.holdings[i].ticker; %>
+  <% let quantity = it.person.holdings[i].quantity; %>
+  <% let currentPriceOfOneShare = it.person.holdings[i].currentPriceOfOneShare; %>
+  <li class="list-group-item d-flex justify-content-between align-items-start">
+    <div class="ms-2 me-auto">
+      <div class="fw-bold"><%= ticker %></div>
+      <div><%= quantity %> share<%= quantity > 1 ? "s" : "" %> at
+        $<%= currentPriceOfOneShare %> = $<code><%= quantity*currentPriceOfOneShare %></code></div>
+      <% if (holdings[i].limit) { %>
+      <span class="text-muted">Limit order at $<%= holdings[i].limit %>.</span>
+      <% } %>
+      <% if (holdings[i].stop) { %>
+      <span class="text-muted">Stop order at $<%= holdings[i].stop %>.</span>
+      <% } %>
+    </div>
+    <span class="badge bg-primary rounded-pill"><%= quantity %></span>
+  </li>
+  <% } %>
+</ol>

@@ -4,7 +4,7 @@
   Quotes
  -->
 
-<% let links = [{name: 'Home', url: '/'},{name: 'Balance & Holdings', url: '/holdings'}, {name: 'Buy/Sell', url: '/purchase'}] %>
+<% let links = [{name: 'Home', url: '/'},{name: 'Balance & Holdings', url: '/holdings'}, {name: 'Buy', url: '/buy'}, {name: 'Sell', url: '/sell'}] %>
 
 <header>
   <!-- Fixed navbar -->
@@ -22,9 +22,9 @@
             <a class="nav-link" id="<%= links[i].url %>" href="<%= links[i].url %>"><%= links[i].name %></a>
           </li>
           <% } %>
-          <li class="nav-item">
+          <!-- <li class="nav-item">
             <a class="nav-link" href="#">Link</a>
-          </li>
+          </li> -->
           <!-- <li class="nav-item">
             <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
           </li> -->
