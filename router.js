@@ -9,6 +9,9 @@ const PATHS = {
 };
 let router = new express.Router();
 
+// runs in the background
+DB.searchForLimitOrStopOrders();
+
 // callback (err, price)
 // can be promises or callbacks
 function getQuote(ticker, callback = null) {

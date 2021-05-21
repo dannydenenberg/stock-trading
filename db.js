@@ -340,3 +340,57 @@ function getQuote(ticker, callback = null) {
     });
   }
 }
+
+/**
+ * Function is started when the server starts up.
+ * Goes through each person and checks if their limit or stop holdings are done.
+ * If so, they sell the shares.
+ */
+module.exports.searchForLimitOrStopOrders = () => {
+  let checkEvery = 1000 * 4; // check every 4 seconds
+  setInterval(async () => {
+    console.log("checking...");
+    // go through all holdings of each person.
+    for (let i = 0; i < database.length; i++) {
+      for (let j = 0; j < database[i].holdings.length; j++) {
+        const order = database[i].holdings[j];
+        const currentPriceOfOneShare = await getQuote(order.ticker);
+        if (order.limit) {
+          // this is a limit order
+          if (currentPriceOfOneShare >= order.limit) {
+            // sell the stock
+            this.completeSelling(
+              database[i].username,
+              [order.orderId],
+              (err) => {
+                if (err) {
+                  console.log(err);
+                  console.log("^^^Error in checking for limit order^^^");
+                } else {
+                  console.log("sold limit order!");
+                }
+              },
+            );
+          }
+        } else if (order.stop) {
+          // this is a stop order
+          if (currentPriceOfOneShare <= order.stop) {
+            // sell the stock
+            this.completeSelling(
+              database[i].username,
+              [order.orderId],
+              (err) => {
+                if (err) {
+                  console.log(err);
+                  console.log("^^^Error in checking for stop order^^^");
+                } else {
+                  console.log("sold stop order!");
+                }
+              },
+            );
+          }
+        }
+      }
+    }
+  }, checkEvery);
+};
