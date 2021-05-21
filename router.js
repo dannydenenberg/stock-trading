@@ -57,9 +57,16 @@ router.get("/logon", (req, res) => {
 
 router.get("/purchase", auth.mustBeLoggedIn, async (req, res) => {
   // The `cart` cookie is a stringified array of cart items.
-  let cart = req.cookies.cart
-    ? JSON.parse(decodeURIComponent(req.cookies.cart))
-    : null;
+  let cart = [];
+  try {
+    cart = req.cookies.cart
+      ? JSON.parse(decodeURIComponent(req.cookies.cart))
+      : null;
+  } catch (err) {
+    res.cookie("cart", "[]");
+    res.redirect("/buy");
+    return;
+  }
   if (!cart) {
     res.redirect("/buy?alert=There is nothing in your cart.");
     return;

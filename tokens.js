@@ -8,7 +8,10 @@ module.exports.setTokenInResponse = (res, username) => {
   let token = generateToken({ username });
 
   // TODO: create token with username as data
-  res.cookie(TOKEN_NAME, token, { maxAge: 900000, httpOnly: true });
+  res.cookie(TOKEN_NAME, token, {
+    maxAge: 40 * 24 * 60 * 60 * 1000, // 40 days
+    httpOnly: true,
+  });
 };
 
 module.exports.destroyLoggedInToken = (res) => {
