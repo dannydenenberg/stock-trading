@@ -11,9 +11,30 @@ let database = [
     password:
       "3c9909afec25354d551dae21590bb26e38d53f2173b8d3dc3eee4c047e7ab1c1eb8b85103e3be7ba613b31bb5c9c36214dc9f14a42fd7a2fdb84856bca5c44c2",
     historyOfMoney: [],
-    money: 10467,
-    transactions: [],
-    holdings: [],
+    money: 0,
+    transactions: [
+      {
+        transactionType: "buy",
+        transactionId: uuidv4(),
+        stocks: [
+          {
+            pricePerShare: 127.31,
+            ticker: "aapl",
+            quantity: 1,
+            date: new Date(),
+          },
+        ],
+      },
+    ],
+    holdings: [
+      {
+        orderId: uuidv4(),
+        ticker: "aapl",
+        quantity: 1,
+        date: new Date(),
+        limit: 130,
+      },
+    ],
   },
 ];
 /**
@@ -32,6 +53,7 @@ let database = [
   netWorth: [{date: 8273874, worth: 173872}, {date: 923843, worth: 1829387}] // updated periodically
   transactions: [
     {
+      transactionType: "buy" | "sell",
       transactionId: "UUID",
       stocks: [
         {
@@ -45,18 +67,18 @@ let database = [
   ],
   holdings: [
     {
-      holdingId: "UUID",
+      orderId: "UUID",
       ticker: "VTI", 
       quantity: 4
     },
     {
-      holdingId: "UUID",
+      orderId: "UUID",
       ticker: "aapl",
       quantity: 5,
       limit: 249.43
     },
     {
-      holdingId: "UUID",
+      orderId: "UUID",
       ticker: "brk-a",
       quantity: 2,
       stop: 200000
@@ -112,6 +134,68 @@ module.exports.passwordIsCorrect = (username, password, callback) => {
 };
 
 /**
+ * Complete the selling of holdings:
+ *    - find the total of the amount of money the shares are worth
+ *    - remove them from the holdings
+ *    - add new sell transaction to the list
+ *    - add the money to the account balance
+ * @param {*} username
+ * List of Order Ids of the holdings they want to sell:
+ * @param {*} listOfSellingOrderIds = ['40ac7bd7-31ca-430c-b894-d91117c03b30','bca354dd-3bcc-468d-bac3-723af394276e',...]
+ * @param {*} callback = function(err)
+ */
+module.exports.completeSelling = async (
+  username,
+  listOfSellingOrderIds,
+  callback,
+) => {
+  for (let i = 0; i < database.length; i++) {
+    if (database[i].username == username) {
+      // it's the person
+
+      // get total price
+      let holdingsToSell = database[i].holdings.filter((order) =>
+        listOfSellingOrderIds.includes(order.orderId),
+      );
+
+      // get current prices
+      for (let j = 0; j < holdingsToSell.length; j++) {
+        holdingsToSell[j] = {
+          ...holdingsToSell[j],
+          currentPriceOfOneShare: await getQuote(holdingsToSell[j].ticker),
+        };
+      }
+
+      let totalSellingPrice = 0;
+      holdingsToSell.map((order) => {
+        totalSellingPrice += order.currentPriceOfOneShare * order.quantity;
+        return 0;
+      });
+
+      // update money
+      database[i].money += totalSellingPrice;
+
+      // update holdings to not include sold stocks
+      database[i].holdings = database[i].holdings.filter(
+        (order) => !listOfSellingOrderIds.includes(order.orderId),
+      );
+
+      // update transactions
+      database[i].transactions.push({
+        transactionType: "sell",
+        transactionId: uuidv4(),
+        date: new Date(),
+        stocks: holdingsToSell,
+      });
+
+      // send callback
+      callback(null);
+      break;
+    }
+  }
+};
+
+/**
  * Takes a person's cart and
  * - adds cart to holdings
  * - subtracts total amount from the person's money
@@ -136,6 +220,7 @@ module.exports.completePurchase = (username, cart, totalPrice, callback) => {
 
       // update transactions
       database[i].transactions.push({
+        transactionType: "buy",
         transactionId: uuidv4(),
         date: new Date(),
         stocks: cart,
@@ -143,6 +228,7 @@ module.exports.completePurchase = (username, cart, totalPrice, callback) => {
 
       // send callback
       callback(null);
+      break;
     }
   }
 
@@ -178,6 +264,14 @@ module.exports.getPerson = async (username, callback) => {
   }
 };
 
+/**
+ * Add/subtract balance.
+ * If the new balance will be negative, set it to zero.
+ * @param {*} username
+ * @param {*} addOrSubtract
+ * @param {*} amount
+ * @param {*} callback
+ */
 module.exports.addOrSubtractMoney = (
   username,
   addOrSubtract,
@@ -189,12 +283,15 @@ module.exports.addOrSubtractMoney = (
     if (addOrSubtract == "subtract") {
       amount = -amount;
     }
-
     database = database.map((person) => {
       if (person.username == username) {
+        let newBalance = person.money + amount;
+        if (newBalance < 0) {
+          newBalance = 0;
+        }
         return {
           ...person,
-          money: person.money + amount,
+          money: newBalance,
         };
       }
     });

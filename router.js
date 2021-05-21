@@ -60,6 +60,10 @@ router.get("/purchase", auth.mustBeLoggedIn, async (req, res) => {
   let cart = req.cookies.cart
     ? JSON.parse(decodeURIComponent(req.cookies.cart))
     : null;
+  if (!cart) {
+    res.redirect("/buy?alert=There is nothing in your cart.");
+    return;
+  }
 
   for (let i = 0; i < cart.length; i++) {
     try {
@@ -153,7 +157,7 @@ router.get("/buy", auth.mustBeLoggedIn, async (req, res) => {
     }
     console.log(cart);
   }
-  res.render("buy", { title: "Buy", cart });
+  res.render("buy", { title: "Buy", cart, person: req.person });
 });
 
 router.post("/updatecart", (req, res) => {
@@ -251,6 +255,19 @@ router.post("/money", auth.mustBeLoggedIn, (req, res) => {
 
 router.get("/sell", auth.mustBeLoggedIn, (req, res) => {
   res.render("sell", { title: "Sell", person: req.person });
+});
+
+router.post("/sell", auth.mustBeLoggedIn, (req, res) => {
+  let { selectedHoldings } = req.body;
+  DB.completeSelling(req.person.username, selectedHoldings, (err) => {
+    if (err) {
+      res.redirect(
+        "/sell?alert=ERROR: An error occured while attempting to sell shares.",
+      );
+    } else {
+      res.redirect("/holdings?alert=Holdings sold successfully!");
+    }
+  });
 });
 
 router.get("/removecartitem", (req, res) => {
