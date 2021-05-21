@@ -3,6 +3,7 @@ let app = express();
 let eta = require("eta");
 const router = require("./router");
 const cookieParser = require("cookie-parser");
+const PORT = process.env.PORT || 8000;
 
 // TODO: just send whole Person object to the eta file.
 // TODO: Also, make middleware that checks if person is logged in and if not, sends them back to the homepage with the alert banner: Please log in before continuing.
@@ -20,6 +21,6 @@ app.use(cookieParser());
 
 app.use(router);
 
-app.listen(8000, function () {
-  console.log("listening to requests on port 8000");
+app.listen(PORT, function () {
+  console.log(`listening to requests on port ${PORT}`);
 });
