@@ -37,6 +37,7 @@ let Person = new Schema({
     default: 0,
     min: 0,
     required: true,
+    set: (m) => m.toFixed(2),
   },
   transactions: {
     default: [],

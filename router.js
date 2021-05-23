@@ -10,7 +10,7 @@ const PATHS = {
 let router = new express.Router();
 
 // runs in the background
-// DB.searchForLimitOrStopOrders(); // TODO implement this and uncomment line
+DB.searchForLimitOrStopOrders();
 
 // callback (err, price)
 // can be promises or callbacks
@@ -166,7 +166,7 @@ router.get("/buy", auth.mustBeLoggedIn, async (req, res) => {
         cart[i].currentPriceOfOneShare = 0;
       }
     }
-    console.log(cart);
+    // console.log(cart);
   }
   res.render("buy", { title: "Buy", cart, person: req.person });
 });

@@ -157,9 +157,9 @@ module.exports.getPerson = (username, callback) => {
       // set current prices
       for (let i = 0; i < person.holdings.length; i++) {
         try {
-          person.holdings[i].currentPriceOfOneShare = await getQuote(
-            person.holdings[i].ticker,
-          );
+          person.holdings[i].currentPriceOfOneShare = (
+            await getQuote(person.holdings[i].ticker)
+          ).toFixed(2);
         } catch (err) {
           console.log(err);
           person.holdings[i].currentPriceOfOneShare = 0;
@@ -247,55 +247,64 @@ function getQuote(ticker, callback = null) {
  * Goes through each person and checks if their limit or stop holdings are done.
  * If so, they sell the shares.
  */
-// TODO: implement this
-// module.exports.searchForLimitOrStopOrders = () => {
-//   let checkEvery = 1000 * 4; // check every 4 seconds
-//   setInterval(async () => {
-//     console.log("checking...");
-//     // go through all holdings of each person.
-//     for (let i = 0; i < database.length; i++) {
-//       for (let j = 0; j < database[i].holdings.length; j++) {
-//         const order = database[i].holdings[j];
-//         const currentPriceOfOneShare = await getQuote(order.ticker);
-//         if (order.limit) {
-//           // this is a limit order
-//           if (currentPriceOfOneShare >= order.limit) {
-//             // sell the stock
-//             this.completeSelling(
-//               database[i].username,
-//               [order.orderId],
-//               (err) => {
-//                 if (err) {
-//                   console.log(err);
-//                   console.log("^^^Error in checking for limit order^^^");
-//                 } else {
-//                   console.log("sold limit order!");
-//                 }
-//               },
-//             );
-//           }
-//         } else if (order.stop) {
-//           // this is a stop order
-//           if (currentPriceOfOneShare <= order.stop) {
-//             // sell the stock
-//             this.completeSelling(
-//               database[i].username,
-//               [order.orderId],
-//               (err) => {
-//                 if (err) {
-//                   console.log(err);
-//                   console.log("^^^Error in checking for stop order^^^");
-//                 } else {
-//                   console.log("sold stop order!");
-//                 }
-//               },
-//             );
-//           }
-//         }
-//       }
-//     }
-//   }, checkEvery);
-// };
+module.exports.searchForLimitOrStopOrders = () => {
+  let checkEvery = 1000 * 4; // check every 4 seconds
+  setInterval(async () => {
+    console.log("checking...");
+    // go through all holdings of each person.
+    Person.find({}, async (err, docs) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+
+      // TODO: fix this crude way of doing it.
+      let database = docs;
+
+      for (let i = 0; i < database.length; i++) {
+        for (let j = 0; j < database[i].holdings.length; j++) {
+          const order = database[i].holdings[j];
+          const currentPriceOfOneShare = await getQuote(order.ticker);
+          if (order.limit) {
+            // this is a limit order
+            if (currentPriceOfOneShare >= order.limit) {
+              // sell the stock
+              this.completeSelling(
+                database[i].username,
+                [order.orderId],
+                (err) => {
+                  if (err) {
+                    console.log(err);
+                    console.log("^^^Error in checking for limit order^^^");
+                  } else {
+                    console.log("sold limit order!");
+                  }
+                },
+              );
+            }
+          } else if (order.stop) {
+            // this is a stop order
+            if (currentPriceOfOneShare <= order.stop) {
+              // sell the stock
+              this.completeSelling(
+                database[i].username,
+                [order.orderId],
+                (err) => {
+                  if (err) {
+                    console.log(err);
+                    console.log("^^^Error in checking for stop order^^^");
+                  } else {
+                    console.log("sold stop order!");
+                  }
+                },
+              );
+            }
+          }
+        }
+      }
+    });
+  }, checkEvery);
+};
 
 async function getTotalSellingPrice(holdings, listOfSellingOrderIds) {
   // get total price

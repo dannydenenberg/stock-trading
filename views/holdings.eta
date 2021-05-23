@@ -2,7 +2,7 @@
 
 <% let totalStockPrices = 0; %>
 <% const operationsForSum = it.person.holdings.length > 0 ? it.person.holdings.map(stock => {totalStockPrices +=stock.quantity*stock.currentPriceOfOneShare; return 0}) : 0; %>
-<% const totalAssets = totalStockPrices + it.person.money; %>
+<% const totalAssets = (totalStockPrices + it.person.money).toFixed(2); %>
 
 <div id="alert" class="alert alert-primary" style="display:none;" role="alert">
 </div>
