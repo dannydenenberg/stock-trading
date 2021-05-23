@@ -117,6 +117,7 @@ router.post("/logon", (req, res) => {
         alertType: "primary",
         alertMessage: "⚠️ An error has occurred. Please try again.",
       });
+      return;
     }
     if (!isCorrect) {
       res.render("logon", {

@@ -1,117 +1,26 @@
 var crypto = require("crypto");
 const { v4: uuidv4 } = require("uuid");
 const yahooFinance = require("yahoo-finance");
-
-// database for now.
-// TODO: add mongo
-let database = [
-  {
-    username: "zach",
-    // 123
-    password:
-      "3c9909afec25354d551dae21590bb26e38d53f2173b8d3dc3eee4c047e7ab1c1eb8b85103e3be7ba613b31bb5c9c36214dc9f14a42fd7a2fdb84856bca5c44c2",
-    historyOfMoney: [],
-    money: 10444,
-    transactions: [
-      {
-        transactionType: "buy",
-        transactionId: uuidv4(),
-        stocks: [
-          {
-            pricePerShare: 127.31,
-            ticker: "aapl",
-            quantity: 1,
-            date: new Date(),
-          },
-        ],
-      },
-    ],
-    holdings: [
-      {
-        orderId: uuidv4(),
-        ticker: "aapl",
-        quantity: 1,
-        date: new Date(),
-        limit: 130,
-      },
-    ],
-  },
-];
-/**
- * Person in Database:
-{
-  username,
-  password,
-  // history of adding/taking away money from the account
-  historyOfMoney: [
-    {
-      date: 2893467882,
-      moneyAdded: -23984 // positive or negative number for how much added/subtracted
-    }
-  ]
-  money: 128374.38,
-  netWorth: [{date: 8273874, worth: 173872}, {date: 923843, worth: 1829387}] // updated periodically
-  transactions: [
-    {
-      transactionType: "buy" | "sell",
-      transactionId: "UUID",
-      stocks: [
-        {
-          pricePerShare: 3829.32,
-          ticker: "VTI",
-          quantity: 4,
-          date: 38298473
-        }
-      ]
-    }
-  ],
-  holdings: [
-    {
-      orderId: "UUID",
-      ticker: "VTI", 
-      quantity: 4
-    },
-    {
-      orderId: "UUID",
-      ticker: "aapl",
-      quantity: 5,
-      limit: 249.43
-    },
-    {
-      orderId: "UUID",
-      ticker: "brk-a",
-      quantity: 2,
-      stop: 200000
-    }
-  ]
-}
- */
+const Person = require("./models/person");
 
 /**
  * Creates a new person in the database.
  * @param {*} username
  * @param {*} password
- * @param {*} callback
+ * @param {*} callback (err: true | false)
  */
 module.exports.createPerson = (username, password, callback) => {
-  // check if person exists
-  if (database.filter((person) => person.username == username).length > 0) {
-    callback(true); // error
-  } else {
-    // create person
-    let hashedPassword = hash(password);
-    let newPerson = {
-      username,
-      password: hashedPassword,
-      money: 0,
-      historyOfMoney: [],
-      transactions: [],
-      holdings: [],
-    };
-    database.push(newPerson);
-    // console.log(database);
-    callback(null); // no error
-  }
+  // create person
+  let hashedPassword = hash(password);
+  let newPerson = new Person({
+    username,
+    password: hashedPassword,
+  });
+
+  newPerson
+    .save()
+    .then((d) => callback(null))
+    .catch((err) => callback(err));
 };
 
 /**
@@ -121,16 +30,18 @@ module.exports.createPerson = (username, password, callback) => {
  * @param {*} callback (err, isCorrect: boolean)
  */
 module.exports.passwordIsCorrect = (username, password, callback) => {
-  // check if username exists and password is right
-  if (
-    database.filter((person) => person.username == username).length == 1 &&
-    database.filter((person) => person.username == username)[0].password ==
-      hash(password)
-  ) {
-    callback(null, true);
-  } else {
-    callback(null, false);
-  }
+  Person.find({ username }, (err, docs) => {
+    if (err) {
+      callback(err, null);
+    } else {
+      let passwordCorrect = docs[0].password;
+      if (hash(password) == passwordCorrect) {
+        callback(null, true);
+      } else {
+        callback(null, false);
+      }
+    }
+  });
 };
 
 /**

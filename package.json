@@ -9,6 +9,7 @@
     "eta": "^1.12.1",
     "express": "^4.17.1",
     "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.12.10",
     "yahoo-finance": "^0.3.7",
     "yahoo-stock-prices": "^1.1.0"
   },
