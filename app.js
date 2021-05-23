@@ -14,7 +14,8 @@ dotenv.config();
  * - DANNY_PASSWORD
  */
 
-const env = process.env.NODE_ENV || null; // check for production vs dev
+let env = process.env.NODE_ENV || null; // check for production vs dev
+env = 1;
 const DB_NAME = "stocks";
 const localDatabaseURL = `mongodb://127.0.0.1:27017/${DB_NAME}`;
 const { DANNY_PASSWORD } = process.env;
