@@ -1,0 +1,43 @@
+<% layout('./center-content') %>
+<% let transactions = it.person.transactions %>
+
+<h1>Transactions</h1>
+
+<% for (t of transactions) { %>
+<div class="list-group" style="width: 73%;">
+  <div class="d-flex w-100 justify-content-between">
+    <h5 class="mb-1">
+      <%= t.transactionType.charAt(0).toUpperCase() + t.transactionType.slice(1) %> <code><%= t.transactionId%></code>
+    </h5>
+    <small class="text-muted"><%= t.date %></small>
+  </div>
+  <ol class="list-group ">
+    <% for (s of t.stocks) { %>
+    <% let ticker = s.ticker; %>
+    <% let quantity = s.quantity; %>
+    <li class="list-group-item d-flex justify-content-between align-items-start">
+      <div class="ms-2 me-auto">
+        <div class="fw-bold"><%= ticker %></div>
+        <div><%= quantity %> share<%= quantity > 1 ? "s" : "" %></div>
+        <% if (s.limit) { %>
+        <span class="text-muted">Limit order at $<%= s.limit %>.</span>
+        <% } %>
+        <% if (s.stop) { %>
+        <span class="text-muted">Stop order at $<%= s.stop %>.</span>
+        <% } %>
+      </div>
+      <span class="badge bg-primary rounded-pill"><%= quantity %></span>
+    </li>
+    <% } %>
+  </ol>
+</div>
+<br />
+<br />
+<% } %>
+
+<style>
+  ol {
+    width: 25%;
+    margin-left: 3em;
+  }
+</style>

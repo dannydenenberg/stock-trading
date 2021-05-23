@@ -48,6 +48,7 @@ function getQuote(ticker, callback = null) {
 
 router.get("/", function (req, res) {
   res.render("index", {
+    title: "Faux Market - Welcome!",
     favorite: "Eta",
     name: "Danny",
     reasons: ["fast", "lightweight", "simple"],
@@ -55,7 +56,11 @@ router.get("/", function (req, res) {
 });
 
 router.get("/logon", (req, res) => {
-  res.render("logon", {});
+  res.render("logon", { title: "FM - Logon" });
+});
+
+router.get("/transactions", auth.mustBeLoggedIn, (req, res) => {
+  res.render("transactions", { person: req.person, title: "Transactions" });
 });
 
 router.get("/purchase", auth.mustBeLoggedIn, async (req, res) => {
@@ -148,7 +153,7 @@ router.get(PATHS.homepage, auth.mustBeLoggedIn, (req, res) => {
 });
 
 router.get("/signup", (req, res) => {
-  res.render("signup", {});
+  res.render("signup", { title: "Sign Up" });
 });
 
 router.get("/buy", auth.mustBeLoggedIn, async (req, res) => {
@@ -297,6 +302,7 @@ router.post("/signup", (req, res) => {
       alert: true,
       alertType: "primary",
       alertMessage: "⚠️ Passwords didn't match.",
+      title: "Sign Up",
     });
   } else {
     DB.createPerson(username, password1, (err) => {
@@ -305,6 +311,7 @@ router.post("/signup", (req, res) => {
         res.redirect(PATHS.homepage);
       } else {
         res.render("signup", {
+          title: "Sign Up",
           alert: true,
           alertType: "primary",
           alertMessage: "⚠️ Username already exists.",

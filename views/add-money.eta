@@ -1,7 +1,7 @@
 <% layout('./center-content') %>
 
 <h2 class="pt-7">Add/Subtract Money</h2>
-<p>Current amount available: $<code style="font-size: x-large"><%= it.person.money %></code></p>
+<p>Current amount available: $<code style="font-size: x-large"><%= it.person.money.toFixed(2) %></code></p>
 
 <form action="money" method="post" validate>
   <div class="form-check">
