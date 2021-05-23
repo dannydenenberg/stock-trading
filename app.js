@@ -5,11 +5,20 @@ const router = require("./router");
 const cookieParser = require("cookie-parser");
 const PORT = process.env.PORT || 8000;
 const mongoose = require("mongoose");
+const dotenv = require("dotenv");
+dotenv.config();
 
-const env = process.env.NODE_ENV || null;
+/**
+ * The 2 variables you need to set in the .env are:
+ * - JWT_TOKEN_SECRET
+ * - DANNY_PASSWORD
+ */
+
+const env = process.env.NODE_ENV || null; // check for production vs dev
 const DB_NAME = "stocks";
 const localDatabaseURL = `mongodb://127.0.0.1:27017/${DB_NAME}`;
-const productionDatabaseURL = `...`; // TODO
+const { DANNY_PASSWORD } = process.env;
+const productionDatabaseURL = `mongodb+srv://danny:${DANNY_PASSWORD}@centralbussing.0ay5u.gcp.mongodb.net/${DB_NAME}?retryWrites=true&w=majority`;
 
 mongoose
   .connect(env ? productionDatabaseURL : localDatabaseURL, {

@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const TOKEN_NAME = "token";
-const dotenv = require("dotenv");
 const DB = require("./db");
+const dotenv = require("dotenv");
 dotenv.config();
 
 module.exports.setTokenInResponse = (res, username) => {
