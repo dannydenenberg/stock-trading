@@ -29,7 +29,7 @@
 
 <h2 class="mt-5 border">Money Market Fund</h2>
 <a href="/money">Add/Subtract Money</a>
-<p class="lead">Money that's readily available to trade: $<code><%= it.person.money %></code></p>
+<p class="lead">Money that's readily available to trade: $<code><%= it.person.money.toFixed(2) %></code></p>
 
 <h2 class="mt-5 border">Holdings</h2>
 <a href="/buy">Buy</a> / <a href="/sell">Sell</a>
