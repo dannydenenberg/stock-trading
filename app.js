@@ -21,6 +21,9 @@ const localDatabaseURL = `mongodb://127.0.0.1:27017/${DB_NAME}`;
 const { DANNY_PASSWORD } = process.env;
 const productionDatabaseURL = `mongodb+srv://danny:${DANNY_PASSWORD}@centralbussing.0ay5u.gcp.mongodb.net/${DB_NAME}?retryWrites=true&w=majority`;
 
+mongoose.set("useNewUrlParser", true);
+mongoose.set("useFindAndModify", false);
+mongoose.set("useCreateIndex", true);
 mongoose
   .connect(env ? productionDatabaseURL : localDatabaseURL, {
     useNewUrlParser: true,

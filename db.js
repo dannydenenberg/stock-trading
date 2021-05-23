@@ -34,11 +34,15 @@ module.exports.passwordIsCorrect = (username, password, callback) => {
     if (err) {
       callback(err, null);
     } else {
-      let passwordCorrect = doc.password;
-      if (hash(password) == passwordCorrect) {
-        callback(null, true);
+      if (!doc) {
+        callback(err, null);
       } else {
-        callback(null, false);
+        let passwordCorrect = doc.password;
+        if (hash(password) == passwordCorrect) {
+          callback(null, true);
+        } else {
+          callback(null, false);
+        }
       }
     }
   });
@@ -60,14 +64,16 @@ module.exports.completeSelling = async (
   listOfSellingOrderIds,
   callback,
 ) => {
+  if (!listOfSellingOrderIds || !(listOfSellingOrderIds.length >= 1)) {
+    callback("ERROR: No selling options selected.");
+    return;
+  }
+
   Person.findOne({ username }, async (err, doc) => {
     if (err) {
       console.log(err);
       callback(err);
     } else {
-      console.log("DOC NEXT:");
-      console.log(doc);
-
       let { totalSellingPrice, holdingsToSell } = await getTotalSellingPrice(
         doc.holdings,
         listOfSellingOrderIds,

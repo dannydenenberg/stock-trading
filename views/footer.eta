@@ -1,10 +1,10 @@
 <footer class="footer mt-auto text-center text-small py-3 bg-light my-5 pt-5 text-muted">
   <div class="container">
     <ul class="list-inline">
-      <li class="list-inline-item"><span class="text-muted">Place sticky footer content here.</span></li>
-      <li class="list-inline-item"><a href="#">Privacy</a></li>
-      <li class="list-inline-item"><a href="#">Terms</a></li>
-      <li class="list-inline-item"><a href="#">Support</a></li>
+      <li class="list-inline-item"><span class="text-muted">
+          <3.</span> </li> <!-- <li class="list-inline-item"><a href="#">Privacy</a></li> -->
+      <li class="list-inline-item"><a href="https://github.com/dannydenenberg/stock-trading/LICENSE.md">Terms</a></li>
+      <!-- <li class="list-inline-item"><a href="#">Support</a></li> -->
     </ul>
   </div>
 </footer>

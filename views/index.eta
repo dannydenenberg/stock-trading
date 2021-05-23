@@ -33,7 +33,8 @@
           <div class="hero-inner">
             <div class="hero-copy">
               <h1 class="hero-title mt-0">Faux Market</h1>
-              <p class="hero-paragraph">Trade stocks with unlimited funds yet exact mirrors of marketplace activity.</p>
+              <p class="hero-paragraph">Trade stocks with fabricated funds and exact mirrors of marketplace activity.
+              </p>
               <div class="hero-cta"><a class="button button-primary" href="/signup">Get Started</a><a class="button"
                   href="/logon">Log On</a></div>
             </div>
