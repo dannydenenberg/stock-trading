@@ -42,6 +42,11 @@ let Person = new Schema({
     default: [],
     type: [
       {
+        date: {
+          type: Date,
+          required: true,
+          default: new Date(),
+        },
         transactionType: {
           type: String, // "buy" or "sell"
           required: true,

@@ -30,11 +30,11 @@ module.exports.createPerson = (username, password, callback) => {
  * @param {*} callback (err, isCorrect: boolean)
  */
 module.exports.passwordIsCorrect = (username, password, callback) => {
-  Person.find({ username }, (err, docs) => {
+  Person.findOne({ username }, (err, doc) => {
     if (err) {
       callback(err, null);
     } else {
-      let passwordCorrect = docs[0].password;
+      let passwordCorrect = doc.password;
       if (hash(password) == passwordCorrect) {
         callback(null, true);
       } else {
@@ -60,50 +60,57 @@ module.exports.completeSelling = async (
   listOfSellingOrderIds,
   callback,
 ) => {
-  for (let i = 0; i < database.length; i++) {
-    if (database[i].username == username) {
-      // it's the person
+  Person.findOne({ username }, async (err, doc) => {
+    if (err) {
+      console.log(err);
+      callback(err);
+    } else {
+      console.log("DOC NEXT:");
+      console.log(doc);
 
-      // get total price
-      let holdingsToSell = database[i].holdings.filter((order) =>
-        listOfSellingOrderIds.includes(order.orderId),
+      let { totalSellingPrice, holdingsToSell } = await getTotalSellingPrice(
+        doc.holdings,
+        listOfSellingOrderIds,
       );
 
-      // get current prices
-      for (let j = 0; j < holdingsToSell.length; j++) {
-        holdingsToSell[j] = {
-          ...holdingsToSell[j],
-          currentPriceOfOneShare: await getQuote(holdingsToSell[j].ticker),
-        };
-      }
+      let newMoney = doc.money + totalSellingPrice;
 
-      let totalSellingPrice = 0;
-      holdingsToSell.map((order) => {
-        totalSellingPrice += order.currentPriceOfOneShare * order.quantity;
-        return 0;
-      });
-
-      // update money
-      database[i].money += totalSellingPrice;
-
-      // update holdings to not include sold stocks
-      database[i].holdings = database[i].holdings.filter(
-        (order) => !listOfSellingOrderIds.includes(order.orderId),
+      // update money and transactions
+      Person.updateOne(
+        { username },
+        {
+          money: newMoney,
+          $push: {
+            transactions: { transactionType: "sell", stocks: holdingsToSell },
+          },
+        },
+        (err, affected, resp) => {
+          if (err) {
+            console.log(err);
+            callback(err);
+          } else {
+            // remove holdings
+            Person.updateOne(
+              { username },
+              {
+                $pull: {
+                  holdings: { orderId: { $in: listOfSellingOrderIds } },
+                },
+              },
+              (err, doc) => {
+                if (err) {
+                  console.log(err);
+                  callback(err);
+                } else {
+                  callback(null);
+                }
+              },
+            );
+          }
+        },
       );
-
-      // update transactions
-      database[i].transactions.push({
-        transactionType: "sell",
-        transactionId: uuidv4(),
-        date: new Date(),
-        stocks: holdingsToSell,
-      });
-
-      // send callback
-      callback(null);
-      break;
     }
-  }
+  });
 };
 
 /**
@@ -116,36 +123,22 @@ module.exports.completeSelling = async (
  * @param {*} callback(err)
  */
 module.exports.completePurchase = (username, cart, totalPrice, callback) => {
-  for (let i = 0; i < cart.length; i++) {
-    cart[i].date = new Date();
-  }
-  for (let i = 0; i < database.length; i++) {
-    if (database[i].username == username) {
-      // it's the person
-
-      // update money
-      database[i].money -= totalPrice;
-
-      // update holdings
-      database[i].holdings = database[i].holdings.concat(cart);
-      console.log(`CART`);
-      console.log(cart);
-
-      // update transactions
-      database[i].transactions.push({
-        transactionType: "buy",
-        transactionId: uuidv4(),
-        date: new Date(),
-        stocks: cart,
-      });
-
-      // send callback
-      callback(null);
-      break;
-    }
-  }
-
-  console.log(database);
+  Person.updateOne(
+    { username },
+    {
+      $inc: { money: -totalPrice },
+      $addToSet: { holdings: { $each: cart } },
+      $push: { transactions: { transactionType: "buy", stocks: cart } },
+    },
+    (err, doc) => {
+      if (err) {
+        console.log(err);
+        callback(err);
+      } else {
+        callback(null);
+      }
+    },
+  );
 };
 
 /**
@@ -154,27 +147,27 @@ module.exports.completePurchase = (username, cart, totalPrice, callback) => {
  * @param {*} username
  * @param {*} callback (err, person)
  */
-module.exports.getPerson = async (username, callback) => {
-  // TODO: add currentPrice to the person.holdings elements using Yahoo Finance.
-  let list = database.filter((person) => person.username == username);
-  if (list.length == 1) {
-    let person = list[0];
+module.exports.getPerson = (username, callback) => {
+  Person.findOne({ username }, async (err, doc) => {
+    if (err) {
+      callback(err, null);
+    } else {
+      let person = doc;
 
-    for (let i = 0; i < person.holdings.length; i++) {
-      try {
-        person.holdings[i].currentPriceOfOneShare = await getQuote(
-          person.holdings[i].ticker,
-        );
-      } catch (err) {
-        console.log(err);
-        person.holdings[i].currentPriceOfOneShare = 0;
+      // set current prices
+      for (let i = 0; i < person.holdings.length; i++) {
+        try {
+          person.holdings[i].currentPriceOfOneShare = await getQuote(
+            person.holdings[i].ticker,
+          );
+        } catch (err) {
+          console.log(err);
+          person.holdings[i].currentPriceOfOneShare = 0;
+        }
       }
+      callback(null, person);
     }
-
-    callback(null, person);
-  } else {
-    callback(true, null);
-  }
+  });
 };
 
 /**
@@ -183,7 +176,7 @@ module.exports.getPerson = async (username, callback) => {
  * @param {*} username
  * @param {*} addOrSubtract
  * @param {*} amount
- * @param {*} callback
+ * @param {*} callback(err)
  */
 module.exports.addOrSubtractMoney = (
   username,
@@ -191,27 +184,24 @@ module.exports.addOrSubtractMoney = (
   amount,
   callback,
 ) => {
-  let list = database.filter((person) => person.username == username);
-  if (list.length == 1) {
-    if (addOrSubtract == "subtract") {
-      amount = -amount;
-    }
-    database = database.map((person) => {
-      if (person.username == username) {
-        let newBalance = person.money + amount;
-        if (newBalance < 0) {
-          newBalance = 0;
-        }
-        return {
-          ...person,
-          money: newBalance,
-        };
-      }
-    });
-    callback(null);
-  } else {
-    callback(true);
+  // set amount to negative if subtracting
+  if (addOrSubtract == "subtract") {
+    amount = -amount;
   }
+
+  Person.updateOne(
+    { username },
+    {
+      $inc: { money: amount },
+    },
+    (err, doc) => {
+      if (err) {
+        callback(err);
+      } else {
+        callback(null);
+      }
+    },
+  );
 };
 
 function hash(text) {
@@ -257,51 +247,79 @@ function getQuote(ticker, callback = null) {
  * Goes through each person and checks if their limit or stop holdings are done.
  * If so, they sell the shares.
  */
-module.exports.searchForLimitOrStopOrders = () => {
-  let checkEvery = 1000 * 4; // check every 4 seconds
-  setInterval(async () => {
-    console.log("checking...");
-    // go through all holdings of each person.
-    for (let i = 0; i < database.length; i++) {
-      for (let j = 0; j < database[i].holdings.length; j++) {
-        const order = database[i].holdings[j];
-        const currentPriceOfOneShare = await getQuote(order.ticker);
-        if (order.limit) {
-          // this is a limit order
-          if (currentPriceOfOneShare >= order.limit) {
-            // sell the stock
-            this.completeSelling(
-              database[i].username,
-              [order.orderId],
-              (err) => {
-                if (err) {
-                  console.log(err);
-                  console.log("^^^Error in checking for limit order^^^");
-                } else {
-                  console.log("sold limit order!");
-                }
-              },
-            );
-          }
-        } else if (order.stop) {
-          // this is a stop order
-          if (currentPriceOfOneShare <= order.stop) {
-            // sell the stock
-            this.completeSelling(
-              database[i].username,
-              [order.orderId],
-              (err) => {
-                if (err) {
-                  console.log(err);
-                  console.log("^^^Error in checking for stop order^^^");
-                } else {
-                  console.log("sold stop order!");
-                }
-              },
-            );
-          }
-        }
-      }
-    }
-  }, checkEvery);
-};
+// TODO: implement this
+// module.exports.searchForLimitOrStopOrders = () => {
+//   let checkEvery = 1000 * 4; // check every 4 seconds
+//   setInterval(async () => {
+//     console.log("checking...");
+//     // go through all holdings of each person.
+//     for (let i = 0; i < database.length; i++) {
+//       for (let j = 0; j < database[i].holdings.length; j++) {
+//         const order = database[i].holdings[j];
+//         const currentPriceOfOneShare = await getQuote(order.ticker);
+//         if (order.limit) {
+//           // this is a limit order
+//           if (currentPriceOfOneShare >= order.limit) {
+//             // sell the stock
+//             this.completeSelling(
+//               database[i].username,
+//               [order.orderId],
+//               (err) => {
+//                 if (err) {
+//                   console.log(err);
+//                   console.log("^^^Error in checking for limit order^^^");
+//                 } else {
+//                   console.log("sold limit order!");
+//                 }
+//               },
+//             );
+//           }
+//         } else if (order.stop) {
+//           // this is a stop order
+//           if (currentPriceOfOneShare <= order.stop) {
+//             // sell the stock
+//             this.completeSelling(
+//               database[i].username,
+//               [order.orderId],
+//               (err) => {
+//                 if (err) {
+//                   console.log(err);
+//                   console.log("^^^Error in checking for stop order^^^");
+//                 } else {
+//                   console.log("sold stop order!");
+//                 }
+//               },
+//             );
+//           }
+//         }
+//       }
+//     }
+//   }, checkEvery);
+// };
+
+async function getTotalSellingPrice(holdings, listOfSellingOrderIds) {
+  // get total price
+  let holdingsToSell = holdings.filter((order) =>
+    listOfSellingOrderIds.includes(order.orderId),
+  );
+
+  // get current prices
+  for (let j = 0; j < holdingsToSell.length; j++) {
+    holdingsToSell[j].currentPriceOfOneShare = await getQuote(
+      holdingsToSell[j].ticker,
+    );
+  }
+
+  // console.log("---------------\nHoldings to sell\n\n\n");
+  // console.log(holdingsToSell);
+  // console.log("---------------\nHoldings to sell\n\n\n");
+
+  // set total price
+  let totalSellingPrice = 0;
+  holdingsToSell.map((order) => {
+    totalSellingPrice += order.currentPriceOfOneShare * order.quantity;
+    return "";
+  });
+
+  return { totalSellingPrice, holdingsToSell };
+}

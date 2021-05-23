@@ -10,7 +10,7 @@ const PATHS = {
 let router = new express.Router();
 
 // runs in the background
-DB.searchForLimitOrStopOrders();
+// DB.searchForLimitOrStopOrders(); // TODO implement this and uncomment line
 
 // callback (err, price)
 // can be promises or callbacks
